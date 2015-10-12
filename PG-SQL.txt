@@ -150,7 +150,7 @@ PostgreSQL查询要点、技巧：
     简述：
     递归查询所有数据，并增加下一级组织标识列。按照这个标识列分组。
     SQL参考：
-    -------------按月份，顺丰总部的下级节点统计其三线员工晚上20点下班人数(按照每天有20点后打卡记录统计)--------
+    -------------按月份，xx总部的下级节点统计其三线员工晚上20点下班人数(按照每天有20点后打卡记录统计)--------
     select check_month,cid 组织ID,cname 组织名称,count(*) as check_count from (
     select DISTINCT(badgenumber),to_char(checktime,'YYYY-MM') as check_month,date(checktime),d.deptid,d.deptname,d.supdeptid,xx.cid,xx.cname from userinfo u
     left join checkinout c on c.userid=u.userid
@@ -158,7 +158,7 @@ PostgreSQL查询要点、技巧：
     left join personnel_positions p on p.id=u.position_id
     left join (
              WITH RECURSIVE r AS (
-                SELECT deptid,deptid as cid,deptname as cname FROM departments WHERE supdeptid =32692   -- 组织名: 顺丰总部
+                SELECT deptid,deptid as cid,deptname as cname FROM departments WHERE supdeptid =32692   -- 组织名: xx总部
              UNION   ALL
                 SELECT departments.deptid,cid,cname FROM departments, r WHERE departments.supdeptid = r.deptid and departments.status=0
              )select * from r
@@ -167,7 +167,7 @@ PostgreSQL查询要点、技巧：
     and p.pos_attr='三线'   -- 取三线员工
     and u.isatt=true   -- 取需要考勤员工
     --and timetz(c.checktime)>= '20:00:00' -- 晚上20点后打卡的员工
-    and cid is not null   -- 取连接表数据中属于顺丰总部的人 
+    and cid is not null   -- 取连接表数据中属于xx总部的人 
     ) dept_checks
 
     group by check_month,cid,cname
