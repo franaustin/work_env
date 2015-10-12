@@ -12,4 +12,5 @@ dist
 build
 
 #other files
-.bak
+*.bak
+*.txt.bak
