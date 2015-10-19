@@ -1,0 +1,22 @@
+git常用命令:
+1.安装:
+apt-get install git
+下载地址:
+https://github.com/git-for-windows/git/releases/
+
+2.配置用户名与邮箱:
+$ git config --global user.name "Your Name"
+$ git config --global user.email "email@example.com"
+
+3.创建版本库: windows系统不要采用中文目录
+$ mkdir gitstore
+$ cd gitstore
+$ pwd
+/f/gitstore/
+初始化:
+$ git init
+提交到缓存区:
+$ git add readme.txt
+提交到仓库:
+$ git commit -m "wrote a readme file"
+
