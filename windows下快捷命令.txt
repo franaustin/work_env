@@ -1,0 +1,9 @@
+1.window 文件目录树形结构 :
+> tree /f 
+> tedd /a
+
+结果输出到文件 :
+> tree /f >tree-f.txt
+> tree /a >tree-a.txt
+
+
