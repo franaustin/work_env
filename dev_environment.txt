@@ -398,7 +398,9 @@ echo $LD_LIBRARY_PATH
 
 --------- 刷新动态库配置  ldconfig
 
-
 yum install popt-devel 
 yum install openssl-devel 
 yum install gcc
+=======
+--------- 刷新动态库配置  ldconfig
+

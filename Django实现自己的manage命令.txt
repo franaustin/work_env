@@ -1,0 +1,77 @@
+扩展Django:实现自己的manage命令
+实例:
+创建一个app并加入到settings的INSTALLED_APPS中，
+在该app下面创建management.commands模块，并创建hello.py文件:
+#================== hello.py ============
+from django.core.management.base import BaseCommand, CommandError
+from django.db import models
+#from placeholders import *
+import os
+    
+class Command(BaseCommand):
+     def handle(self, *args, **options):
+         print 'hello, django!'
+进入到manage.py文件目录下，即可如下方式执行:
+$ python manage.py hello
+  hello, django!
+
+
+Django的django-admin.py和manage.py: 
+django-admin.py是一个命令行工具，可以执行一些管理任务，比如创建Django项目。
+manage.py是在创建每个Django project时自动添加在项目目录下的，只是对manage.py的一个简单包装，
+ 其功能是将Django project放到sys.path目录中，同时设置DJANGO_SETTINGS_MODULE环境变量为当前project的setting.py文件。
+
+#************* django-admin.py ************** django1.8.5 ********
+#!c:\python27\python.exe
+from django.core import management
+
+if __name__ == "__main__":
+    management.execute_from_command_line()
+
+
+#************* manage.py ************** django1.8.5 ********
+#!/usr/bin/env python
+import os
+import sys
+
+if __name__ == "__main__":
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "mysite3.settings")
+
+    from django.core.management import execute_from_command_line
+
+    execute_from_command_line(sys.argv)
+
+
+excute_from_command_line()函数会根据命令行参数解析出命令的名称，根据命令名称调用相应的Command执行命令。
+Command位于各个管理模块的commands模块下面。
+所谓管理模块，是指在app模块下的名字为management的模块。
+Django通过django.core.management.find_management_module函数发现"管理模块":
+ManagementUtility
+
+然后通过django.core.management.find_commands函数找到命令类。find_commands函数会在管理模块下查找.py文件，并将.py文件的名称匹配到命令名称:
+def find_commands(management_dir):
+    """
+    Given a path to a management directory, returns a list of all the command
+    names that are available.
+
+    Returns an empty list if no commands are defined.
+    """
+    command_dir = os.path.join(management_dir, 'commands')
+    # Workaround for a Python 3.2 bug with pkgutil.iter_modules
+    sys.path_importer_cache.pop(command_dir, None)
+    return [name for _, name, is_pkg in pkgutil.iter_modules([npath(command_dir)])
+            if not is_pkg and not name.startswith('_')]
+
+最后，通过django.core.management.load_command_class函数加载该.py文件中的Command类
+
+def load_command_class(app_name, name):
+    """
+    Given a command name and an application name, returns the Command
+    class instance. All errors raised by the import process
+    (ImportError, AttributeError) are allowed to propagate.
+    """
+    module = import_module('%s.management.commands.%s' % (app_name, name))
+    return module.Command()
+
+在执行命令的时候，会执行相应Command类的handle方法。
+所有的Command类都应该是django.core.management.base.BaseCommand的直接或间接子类。

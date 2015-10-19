@@ -1,0 +1,155 @@
+Python网络编程基础 (Client, Server) 
+网络客户端：
+
+1. 理解socket： socket是操作系统I/O系统的延伸部分，它扩展了操作系统的基本I/O到网络通信，使进程和机器之间的通信成为可能。建立 socket 需要通过调用 socket() 函数，并且还需要另外的调用来连接和激活它们( recv() 和 send() ) 。
+
+2. 建立socket：首先需要建立一个实际的socket对象，其次需要把它连接到远程服务器上。建立socket对象的时候需要告诉系统两件事情：通信协议和协议家族。
+
+通信协议：Internet通信类型基本上都是AF_INET，和 IPv4 对应。
+
+协议家族：SOCK_STREAM ( TCP通信 ) 或 SOCK_DGRAM ( UDP通信 ) 。
+
+TCP建立socket连接：
+
+
+s = socket.socket( socket.AF_INET, socket.SOCK_STREAM ) 
+
+UDP建立socket连接：
+
+
+s = socket.socket( socket.AF_INET, socket.SOCK_DGRAM ) 
+
+3. 连接socket：一般需要一个tuple，包含远程主机名( 或IP地址) 和远程端口。 
+
+连接一个socket一般使用如下代码：
+
+
+s.connect(( "www.example.com", 80)) 
+
+由以上代码可看出，我们可以通过使用域名来连接远程主机，因为python为我们做了DNS解析。
+
+http站点的的默认端口是80。python的socket库包含一个getservbyname()的函数可以自动查询服务器端口号列表。
+
+该函数需要两个参数：协议名和端口名。
+
+
+port = socket.getservbyname( "http", "tcp" ) 
+
+注：getservbyname() 方法是直接调用操作系统API。
+
+4. 从socket获取信息。
+connect.py 
+    #!/usr/bin/env python
+    # Information Example 
+     
+     import socket
+
+     print "Creating socket... "
+    s = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
+     print "Done!"
+
+     print "Looking up port number... "
+    port = socket.getservbyname( "http", "tcp" )
+     print "Done!"
+
+     print "Connecting to remote host on port %d..." % port
+    s.connect(( "www.google.com", port ))
+     print "Done!"
+
+     print "Connected from ", s.getsockname()
+     print "Connected to ", s.getpeername()
+
+5. 利用socket通信。
+
+python提供了两种通信方法：socket对象和文件类对象。
+
+socket 对象提供了操作系统的 send(), sendto(), recv(), recvfrom() 调用的接口。
+
+文件类对象则提供了 read(), write() readline() 等python接口。
+
+文件类对象一般只对TCP连接工作得很好，对UDP连接反而不是很发。
+
+6. 处理错误与socket异常。 
+
+    与一般I/O和通信问题有关的 socket.error;
+
+    与查询地址信息有关的 socket.gaierror;
+
+    与其他地址错误有关的 socket.herror;
+
+    与在一个socket上调用settimeout()后，处理超时有关的socket.timeout。
+
+7. UDP客户端和TCP客户端的区别。
+
+<1>. 当socket建立的时候，程序调用的是 socket.SOCK_DGRAM ,而不是 SOCK_STREAM 。这会向操作系统提示socket将使用UDP通信，而不是TCP。
+
+<2>. 对socket.getsevbyname()的调用寻找的是UDP端口，而不是TCP的。不是协议可使用同一端口号。
+
+<3>. 程序没有办法探测服务器什么时候发送完数据。这是因为这里其实没有什么实际的连接。对connect()的调用只是初始化了一些内在参数。同时，服务器也许不会返回任何数据，或者数据也许在传输过程中丢失，程序并没有智能地判断这个问题，因此，当结束等待传来的信息包时，需要按下Ctrl-C 。
+
+ 
+
+网络服务器
+
+1. 服务器的特点是等待来自客户端的请求，发送应答。与客户端类似，使用的是和客户端同样的socket接口，但建立socket的细节却是不同的。
+
+2. 准备连接。
+
+    <1>. 建立socket对象。可以使用和客户端中使用的同一个socket对象。 
+
+s = socket.socket( socket.AF_INET, socket.SOCK_STREAM ) 
+
+
+    <2>. 设置socket选项（可选）。 
+
+s.setsockopt( socket.SOL_SOCKET, socket.SO_REUSEADDR, 1 ) 
+
+
+    <3>. 绑定到一个端口（同样，也可以是一个指定的网卡）。bind()函数第一个参数是你要绑定的IP地址，通常为空，意思是可以绑定到所有的接口和地址。 
+
+s.bind(( host, port )) 
+
+
+    <4>. 侦听连接。唯一参数指明了服务器实际处理连接的时候，允许有多少个未决（等待）的连接在队列中等待。 
+
+s.listen(5) 
+
+
+3. 接受连接。
+
+通常服务器连续运行的办法是小心地设计一个无限循环。
+
+server.py 
+    #!/usr/bin/env python
+    # Base Server
+     
+     import socket
+
+    host = ''
+    port = 51423
+
+    s = socket.socket( socket.AF_INET, socket.SOCK_STREAM)
+    s.setsockopt( socket.SOL_SOCKET, socket.SO_REUSEADDR, 1 )
+    s.bind((host, port))
+     print "Waiting for connections... "
+    s.listen(1)
+
+    while 1:
+        clientsock, cliendaddr = s.accept()
+        print "Got connection from ", clientsock.getpeername()
+        cliendsock.close()
+
+这里的循环是：当你调用 accept() 的时候，它只在有一个客户端连接后才返回，同时程序会停止，并不使用任何CPU资源。
+
+一个停止并等待输入或输出的程序称为被阻塞的程序。
+
+测试此服务器程序可以使用操作系统的 telnet 指令。对于这个程序，先运行服务器，接着运行 telnet localhost 51423 。服务器程序会报告一个连接，并且 telnet 程序会立即终止。
+
+4. 使用UDP。
+
+在服务器端使用UDP，可以像使用TCP一样建立一个socket, 设置选项，并调用 blind() 函数。然而，不必使用 listen() 或 accept() 函数，仅仅使用 recvfrom() 函数就可以了。这个函数实际上会返回两个信息：收到的数据，以及发送这些数据的程序地址和端口号。
+
+5. 避免死锁。
+
+死锁发生在当一个服务器和客户端同时试图往一个连接上写东西和同时从一个连接上读的时候。在这些情况下，没有进程可以得到任何数据（如果它们都正在读）。因此，如果它们正在写，向外的buffer会被充满，结果它们就好像是被骗了，什么都做不了。（解决？确保客户端每次执行完send()后进行一次recv()；简单地使客户端发送较少的数据；使用多线程，使客户端可以同时发送和接收。）小心地设计协议并适当地使用超时，可以把死锁出现的频繁和影响减至最小。
+
