@@ -28,3 +28,13 @@ tree.write(xmlpath, pretty_print=True, xml_declaration=True, encoding='utf-8')
 5.发送报文消息。
 f = urllib2.urlopen(url, soap_message) 
 content = f.read()
+
+
+数据接收接口:
+soaplib 库、 pytz库
+利用soaplib库启一个服务端。
+把接口集成到django中，直接使用django来对外提供服务
+例如: http://localhost:8000/server?WDDL
+
+
+
