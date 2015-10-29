@@ -178,6 +178,27 @@ $ git clone git@server:/srv/sample.git
 Cloning into 'sample'...
 warning: You appear to have cloned an empty repository.
 
+#==========================
+git 断点续传
+git clone 不能续传
+用git init
+git fetch git://…..git
+
+即使断掉了，可以继续
+git fetch git://…..git
+等到fetch完会出现以下字样
+
+From git://….
+*branch           HEAD                -> FETCH_HEAD
+
+意思是把最新的数据fetch到了本地的FETCH_HEAD分支上去了
+然后用git checkout FETCH_HEAD
+或者也等同于git fetch git://…..git HEAD：FETCH_HEAD(没测试）
+
+例如：
+(1): git fetch git://repo.or.cz/tomato.git
+如果中途掉线，继续执行上面(1)命令
+(2): git checkout FETCH_HEAD 或者git fetch git://repo.or.cz/tomato.git HEAD
 
 
 
