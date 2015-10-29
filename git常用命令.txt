@@ -56,7 +56,7 @@ $ ssh-keygen -t rsa -C "youremail@example.com"
 id_rsa是私钥，不能泄露出去，id_rsa.pub是公钥，可以放心地告诉任何人
 
 将已有的本地仓库与之关联
-$ git remote add origin git@github.com:michaelliao/learngit.git
+$ git remote add origin git@github.com:franaustin/work_env.git
 
 把本地库的所有内容推送到远程库上: 第一次推送master分支的所有内容
 $ git push -u origin master
