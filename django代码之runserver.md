@@ -73,12 +73,12 @@ environ:用于传递环境参数，是一个python内置的dictionary.
 
 start_response：是一个可调用的对象。
 
-runserver.py --> basehttp.py --> wsgi.py 
-                                    └──-> handlers.wsgi.py(WSGIHandler)
-                                               └─-> handlers.base.py(BaseHandler)
+runserver.py --> basehttp.py --> wsgi.py  
+				    └──-> handlers.wsgi.py(WSGIHandler)  
+						└─-> handlers.base.py(BaseHandler) 
 
 再接下来分析一下关于BaseHandler吧，实际上这里有django 最核心的处理middleware的调用逻辑。
-![mahua](https://docs.djangoproject.com/en/1.5/_images/middleware.png)
+![django-middleware](https://docs.djangoproject.com/en/1.5/_images/middleware.png)
 
 https://docs.djangoproject.com/en/1.5/topics/http/middleware/ 这里有一个很详细的说明。
 
