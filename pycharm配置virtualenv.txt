@@ -1,0 +1,28 @@
+pycharm 4.5.4 virtualenv:
+1.安装virtualenv
+  easy_install virtualenv
+  pip install virtualenv
+2.pycharm 采用 virtualenv
+  File -> settings -> Project ->Project Interpreter
+  选择project > Project Interpreter > create VirtualEnv
+  name: virtualenvs_xxx
+  localtion: f:\projects\.virtualenvs\virtuals_xxx
+  base interpreter: c:\Python\python.exe
+
+3.安装 requests
+  进入 virtualenv
+  mkdir myproject
+  cd myproject
+  virtualenv .virtualenv/virtualenvs_myproject
+  .virtualenv/virtualenvs_myproject/Scripts/activate
+  启动虚拟环境。行首出现:(env)
+  退出:
+  deactivate
+
+  安装 pip 
+  pip install -r requests.txt
+
+========= requests.txt =======
+Flask==0.10.1
+Flask-Bootstrap==3.0.3.1
+

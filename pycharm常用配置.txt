@@ -1,0 +1,80 @@
+pycharm 4.5.4 常用配置:
+参考:  http://blog.csdn.net/pipisorry/article/details/39909057
+1.显示行号、分隔符、空白字符：
+   File -> setting -> Editor -> General -> Appearance ->
+   Show line numbers
+   show method separators
+   show whitespaces
+2.编辑区域主题: 
+   File -> setting -> Editor -> Colors & Fonts 
+   Scheme -> Github 
+3.换行符
+   File -> setting -> Editor -> Code Style 
+   Line separator  ->Unix
+  缩进
+  Python -> Tabs and Indents 
+  Use tab character  True
+  Smart tabs  True
+  换行
+  Python -> Wrapping and Braces 
+  Line breaks   False
+
+ ---- File -> Setting ->Editor -----
+ 1. 设置Python自动引入包，要先在 >general > autoimport -> python :show popup
+     快捷键：Alt + Enter: 自动添加包
+
+2. “代码自动完成”时间延时设置
+
+  > Code Completion   -> Auto code completion in (ms):0  -> Autopopup in (ms):500
+
+3. Pycharm中默认是不能用Ctrl+滚轮改变字体大小的，可以在〉Mouse中设置
+
+4. 显示“行号”与“空白字符”
+
+  > Appearance  -> 勾选“Show line numbers”、“Show whitespaces”、“Show method separators”
+
+5. 设置编辑器“颜色与字体”主题
+
+  > Colors & Fonts -> Scheme name -> 选择"monokai"“Darcula”
+
+  说明：先选择“monokai”，再“Save As”为"monokai-pipi"，因为默认的主题是“只读的”，一些字体大小颜色什么的都不能修改，拷贝一份后方可修改！
+
+  修改字体大小
+
+> Colors & Fonts -> Font -> Size -> 设置为“14”
+
+6. 设置缩进符为制表符“Tab”
+
+  File -> Default Settings -> Code Style
+
+  -> General -> 勾选“Use tab character”
+
+  -> Python -> 勾选“Use tab character”
+
+  -> 其他的语言代码同理设置
+7. 去掉默认折叠
+
+  > Code Folding -> Collapse by default -> 全部去掉勾选
+8. pycharm默认是自动保存的，习惯自己按ctrl + s  的可以进行如下设置：
+    > General -> Synchronization -> Save files on frame deactivation  和 Save files automatically if application is idle for .. sec 的勾去掉
+
+    > Editor Tabs -> Mark modified tabs with asterisk 打上勾
+
+9.>file and code template>python scripts
+
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+__title__ = '$Package_name'
+__author__ = '$USER'
+__mtime__ = '$DATE'
+"""
+
+10 python文件默认编码
+
+File Encodings> IDE Encoding: UTF-8;Project Encoding: UTF-8;
+
+11. 代码自动整理设置
+ File -> setting -> Editor -> Code Style 
+ Python -> Wrapping and Braces 
+ Line breaks   False
