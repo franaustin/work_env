@@ -1,0 +1,32 @@
+Example:
+I have URL
+http://www.somedomain.com/account/search?filter=a#top
+but I would just like to get this portion
+/account/search
+
+// If URL is http://www.somedomain.com/account/search?filter=a#top
+
+window.location.pathname // /account/search
+
+// For reference:
+
+window.location.host     // www.somedomain.com (includes port if there is one)
+window.location.hostname // www.somedomain.com
+window.location.hash     // #top
+window.location.href     // http://www.somedomain.com/account/search?filter=a#top
+window.location.port     // (empty string)
+window.location.protocol // http:
+window.location.search   // ?filter=a  
+
+
+var el = document.createElement('a');
+el.href = "http://www.somedomain.com/account/search?filter=a#top";
+
+el.host        // www.somedomain.com (includes port if there is one[1])
+el.hostname    // www.somedomain.com
+el.hash        // #top
+el.href        // http://www.somedomain.com/account/search?filter=a#top
+el.pathname    // /account/search
+el.port        // (port if there is one[1])
+el.protocol    // http:
+el.search      // ?filter=a
