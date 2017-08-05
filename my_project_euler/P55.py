@@ -51,7 +51,9 @@ max_number = 10000
 results = []  # 349,943,1292,2921,3124,4213,196
 for num in xrange(max_number):
     number = num
-    is_palindromic = False
+    is_palindromic = valid_palindromic(number)
+    if is_palindromic:
+        continue
     for deep in xrange(50):
         number += int(str(number)[::-1])   # 传递值 n = n + r(n), n = n+r(n) + r(n+r(n))
         is_palindromic = valid_palindromic(number)
@@ -61,3 +63,20 @@ for num in xrange(max_number):
         results.append(num)
 
 print len(results)
+print results
+
+
+def reverse_num(num):
+    return int(str(num)[::-1])
+palindromic_count = 10000
+for number in xrange(max_number):
+    num = number
+    if num == reverse_num(num):
+        palindromic_count -= 1
+        continue
+    for deep in xrange(50):
+        num += reverse_num(num)
+        if num == reverse_num(num):
+            palindromic_count -= 1
+            break
+print palindromic_count
