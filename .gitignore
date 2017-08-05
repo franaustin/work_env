@@ -14,3 +14,4 @@ build
 #other files
 *.bak
 *.txt.bak
+*.idea
