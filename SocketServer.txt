@@ -30,6 +30,13 @@ server.serve_forever()
 MyRequestHandler类
 
 #=====================
+import BaseHTTPServer
+import CGIHTTPServer
+httpd = BaseHTTPServer.HTTPServer(('localhost', 8123),CGIHTTPServer.CGIHTTPRequestHandler)
+###  here some code to say, hey please execute python script on the webserver... ;-)
+httpd.serve_forever()
+
+#=====================
 class MyRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.process(2)
