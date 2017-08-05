@@ -1,0 +1,16 @@
+常见异常：
+NameError           使用未赋值的变量
+IOError             IO异常，输入输出异常，无法打开文件等
+ImportError         引入异常，找不到引入的模块等
+IndentationError    无效的缩进，代码没有对齐。
+IndexError          下标越界
+KeyError            字典键不存在
+ValueError          传入一个不被期望的值，对负数开方 math.sqrt(-1)
+SyntaxError         逻辑语法出错
+TypeError           类型不符合要求
+KeyboardInterrupt   键入中断指令。比如终端执行python代码的时候强行终止 ctrl+c
+AssertionError      assert语句失败
+AttributeError      对象没有属性，属性异常
+UnboundLocalError   访问没有表明是全局变量的变量。函数内部使用全局变量先用 global标记
+                    本地变量在赋值声明之前被引用
+LookupError         无效数据查询的基类
