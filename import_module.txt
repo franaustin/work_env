@@ -1,0 +1,66 @@
+信息导入：
+1.excel 处理模块 import xlrd
+2.迭代取得文档数据，初步校验数据，重复之类的，明显错误输入之类的。
+3.验证数据。权限，信息匹配。等
+4.导入数据更新到指定位置。
+
+
+#***************************HTTP*****************
+import urllib2
+f = urllib2.urlopen(url, arge)
+content = f.read()
+
+
+import sys
+import BaseHTTPServer
+from SimpleHTTPServer import SimpleHTTPRequestHandler
+HandlerClass = SimpleHTTPRequestHandler
+ServerClass  = BaseHTTPServer.HTTPServer
+Protocol     = "HTTP/1.0"
+ 
+if sys.argv[1:]:
+    port = int(sys.argv[1])
+else:
+    port = 8000
+server_address = ('127.0.0.1', port)
+ 
+HandlerClass.protocol_version = Protocol
+httpd = ServerClass(server_address, HandlerClass)
+ 
+sa = httpd.socket.getsockname()
+print "Serving HTTP on", sa[0], "port", sa[1], "..."
+httpd.serve_forever()
+
+
+#****************************TCP**************
+# server
+import socket
+
+address = ('127.0.0.1', 31500)
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # s = socket.socket()
+s.bind(address)
+s.listen(5)
+ss, addr = s.accept()
+print 'got connected from',addr
+ss.send('byebye')
+ra = ss.recv(512)
+print ra
+ss.close()
+s.close()
+
+
+# client
+import socket
+
+address = ('127.0.0.1', 31500)
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.connect(address)
+data = s.recv(512)
+print 'the data received is',data
+s.send('hihi')
+s.close()
+
+
+
+
+

@@ -1,0 +1,333 @@
+PostgreSQL查询要点、技巧：
+1.复制表
+    select * into new_table from old_table ;
+    create table new_table as select * from old_table ; --不带约束
+
+2.复制数据
+    INSERT INTO new_table (select * from old_table )
+
+3.复制列名
+    select * into new_table from old_table where 1=0
+
+4.行号
+    select row_number()over(),* from sync_employee
+
+5.日期相关
+    select EXTRACT(year FROM now() - interval'10 month')
+    select CURRENT_TIMESTAMP
+    select current_date 
+    select current_time 
+    select current_timestamp -interval'1 year'- interval'1 month'-interval'1 day'
+    select CURRENT_TIMESTAMP + interval'3 month'
+    select date(now())
+    select timestamptz(current_date)
+    select text(now())
+        
+    select to_date(cast(EXTRACT(year from now() - interval'3 months') as varchar(10))||'-'||
+    cast(EXTRACT(month from now() - interval'3 months')as varchar(10))||'-'||'01', 'yyyy-mm-dd')
+
+    select date_trunc('month',now())
+
+
+5.获得一列时间：
+    with recursive alldays as (
+    select '2014-09-01 08:50:00'::timestamptz as cktime 
+    union all
+    select cktime+ interval'1 day' from alldays 
+        where cktime between '2014-09-01 00:00:00' and current_date
+    ) 
+    select * from alldays  -- 输出一列时间数据
+
+6.声明一个函数，及函数内部异常处理：
+    -- 新增一个插入打卡数据记录函数（执行一次即可）
+    CREATE OR REPLACE FUNCTION insert_checkinout(IN dept_id integer, IN checktime character varying, OUT log_info text, OUT tmp_pid text)
+      RETURNS record AS
+    $BODY$
+    DECLARE
+        cur_dept_emp CURSOR  FOR-- 员工游标
+        select u.userid,u.badgenumber,u.status from userinfo u where defaultdeptid=dept_id ;
+        tmp_index int ;
+    BEGIN 
+       log_info :='Log';
+       tmp_pid :='tmp';
+       FOR dept_emp IN cur_dept_emp LOOP
+         BEGIN
+        tmp_index := tmp_index+1;
+        insert into checkinout values((select max(id)+1 from checkinout),dept_emp.userid,timestamptz(checktime),'I',0,null,null,null,null,'6129291460004',now());
+
+           EXCEPTION
+           WHEN OTHERS THEN
+           BEGIN
+             BEGIN
+                  log_info := log_info || '插入异常:' ||tmp_index||' And '||dept_emp.userid;
+                  EXCEPTION
+                  WHEN OTHERS THEN
+                  NULL;
+             END;
+           END;
+           tmp_pid :=tmp_pid||'+'||text(tmp_index)||' And '||dept_emp.userid ;
+         END;
+       END LOOP; 
+    END;
+    $$ LANGUAGE plpgsql;
+
+7.循环
+    --循环while--
+    -------------------pgScript----------
+    DECLARE @I; -- Variable names begin with a @
+    SET @I = 1; -- @I is an integer
+    WHILE @I <= 8
+    BEGIN
+        PRINT '  * Regular PostgreSQL commands , and line: ' + CAST (@I AS STRING);
+        -----begin---使用交集并集更简单
+        delete from checkexact_bak_20131226 where id in (
+        select t.id from userinfo u 
+        full join checkexact_bak_20131226 t on u.userid = t.userid
+        where u.userid is null  limit 20000
+        );
+        ----end----
+        SET @I = @I + 1;
+    END
+
+8.查询字段长度：
+    --根据查询结果，进一步查询字段超过2000的数据。
+    select * from sync_employee where length(emp_name)>2000
+    ------查询数据库字段值等于2000的数据表与字段详情
+    SELECT
+    attname as "name", typname as "type", atttypmod - 4 as "size",*
+    FROM
+    pg_class AS a
+    LEFT OUTER JOIN pg_attribute AS b ON (b.attrelid = a.oid)
+    LEFT OUTER JOIN pg_type AS c ON (b.atttypid = c.oid)
+    --where a.relname = 'sync_employee' --and attname='emp_name'
+    -- and b.attstattarget = -1
+    where atttypmod - 4 =2000
+    order by size desc,attnum desc;
+
+9.postgreSQL角色与权限：
+
+    postgres=# CREATE USER sf_att_card;　　//默认具有LOGIN属性,可以登录
+
+    postgres=> \du+  //查看角色权限
+
+    postgres=# ALTER ROLE sf_att_card WITH PASSWORD 'ufo456'; //赋予 sf_att_card 带密码登录权限
+
+    postgres=# ALTER ROLE sf_att_card VALID UNTIL '2014-04-24';  //设置 sf_att_card 角色的有效期
+
+    postgres=# SELECT * from pg_roles ; //查询角色信息
+
+    postgres=# GRANT CONNECT ON DATABASE test to sf_att_card;  // 允许sf_att_card 用户角色，连接到DATABASE数据库
+
+    postgres=# GRANT USAGE ON SCHEMA SF_ATT TO SF_ATT_CARD;  // sf_att模式使用权限;
+
+    postgres=# GRANT SELECT on sf_att.userinfo to sf_att_card;  // 赋予 sf_att_card 用户角色，sf_att库的userinfo表查询权限
+
+    GRANT SELECT ON ALL TABLES IN SCHEMA public TO xxx; //赋予xxx用户，sf_att模式所有表查询权限
+
+    使用 GRANT 命令赋予权限。
+    使用 REVOKE 命令撤销权限。
+
+10.添加列、迭代、分组，汇总一个组织节点数据
+  组织出勤率统计
+  组织结构树示例：
+  D - CD - CCD - CCCD 
+  D, CD, CCD, CCCD
+
+    CCCD
+    CCD-CCCD
+    CD-CCD-CCCD
+    D-CD-CCD-CCCD
+
+  数据结构优化简图：
+    D - CD - CCD - CCCD 
+    D - AD - AAD - AAAD 
+    D - BD - BBD - BBBD 
+
+    D - CD+C - CCD+C - CCCD+C 
+        AD+A - AAD+A - AAAD+A
+        BD+B - BBD+B - BBBD+B
+    
+    简述：
+    递归查询所有数据，并增加下一级组织标识列。按照这个标识列分组。
+    SQL参考：
+    -------------按月份，xx总部的下级节点统计其三线员工晚上20点下班人数(按照每天有20点后打卡记录统计)--------
+    select check_month,cid 组织ID,cname 组织名称,count(*) as check_count from (
+    select DISTINCT(badgenumber),to_char(checktime,'YYYY-MM') as check_month,date(checktime),d.deptid,d.deptname,d.supdeptid,xx.cid,xx.cname from userinfo u
+    left join checkinout c on c.userid=u.userid
+    left join departments d on d.deptid=u.defaultdeptid
+    left join personnel_positions p on p.id=u.position_id
+    left join (
+             WITH RECURSIVE r AS (
+                SELECT deptid,deptid as cid,deptname as cname FROM departments WHERE supdeptid =32692   -- 组织名: xx总部
+             UNION   ALL
+                SELECT departments.deptid,cid,cname FROM departments, r WHERE departments.supdeptid = r.deptid and departments.status=0
+             )select * from r
+    )xx on xx.deptid=d.deptid
+    where c.checktime between '2014-01-01' and '2014-07-18'  -- 打卡时间范围
+    and p.pos_attr='三线'   -- 取三线员工
+    and u.isatt=true   -- 取需要考勤员工
+    --and timetz(c.checktime)>= '20:00:00' -- 晚上20点后打卡的员工
+    and cid is not null   -- 取连接表数据中属于xx总部的人 
+    ) dept_checks
+
+    group by check_month,cid,cname
+    order by check_month
+
+
+
+
+    出勤率报表:
+    每次查询需要分组求和，需要一定时间。节点*天数=查询次数。
+    减少查询次数会减少分组求和迭代查询次数，会节省时间。
+
+    出勤率报表优化:
+    1.查询所有所选组织及其所有子级组织的出勤率。
+    2.按所选组织 + 所选组织下一级组织 分组查询的数据。
+
+11.导入csv文件数据到数据表
+    COPY sync_department_report_to_atms_bak(id,org_id_sap,org_id_atms,parent_id_sap,parent_id_atms,org_name_sap,org_name_atms,active,otype) 
+    --from '/opt/user_exception_mail_db/att111.csv' 
+    from '/opt/zkeco/importinfodb/org_report_to_atms.csv'
+    DELIMITERS ',' CSV;
+
+12.序列
+    select currval('tbl_xulie_id_seq');
+    select nextval('tbl_xulie_id_seq');
+    select setval('tbl_xulie_id_seq', max(id)) from tbl_xulie;
+
+13.分析、释放空间
+    VACUUM FULL ANALYZE sf_att.departments
+
+14.组织表树形结构
+-----departments组织表树形结构--------
+with recursive rel_tree as (
+   select 1 as level,deptid,supdeptid,code,(select code from departments s where s.deptid=supdeptid) parent_id ,text(deptname) as deptname,  text(deptid) as org_ids 
+   from departments 
+   where deptid=1
+   union all
+   select p.level + 1,c.deptid,c.supdeptid,c.code,(select code from departments s where s.deptid=supdeptid) parent_id, rpad(' ', p.level * 4) || c.deptname, p.org_ids||','||c.deptid
+   from departments c
+     join rel_tree p on c.supdeptid = p.deptid
+)
+select *
+from rel_tree 
+order by org_ids;
+
+
+select * from userinfo u 
+left join 
+(
+with recursive rel_tree as (
+   select 1 as level,deptid,supdeptid,code,(select code from departments s where s.deptid=supdeptid) parent_id ,text(deptname) as deptname,  text(deptid) as org_ids 
+   from departments 
+   where deptid=1
+   union all
+   select p.level + 1,c.deptid,c.supdeptid,c.code,(select code from departments s where s.deptid=supdeptid) parent_id, rpad(' ', p.level * 4) || c.deptname, p.org_ids||','||c.deptid
+   from departments c
+     join rel_tree p on c.supdeptid = p.deptid
+)
+select *
+from rel_tree 
+)
+ d on u.defaultdeptid=d.deptid
+
+where 1=1
+and offduty=0 
+
+15.PG库管理命令
+    with pids as(
+    select procpid from pg_stat_activity 
+     where length(current_query)>=20 
+     and (current_query like'%修改条件%') 
+     and xact_start<=now()- interval'5minute'
+    )
+    select pg_cancel_backend(procpid) from pids
+
+16.截取,定位 select substr(deptname,0,position('.'in deptname)) as org_code,
+
+17.以insert语句导出某个表数据
+ pg_dump  --host hostname --port 5432 --username username -t testtable > /var/www/mytest/1.sqltestdb 
+ pg_dump  -U sf_att --column-inserts -t sync_employee > e:/sync_employee20150603.sql attend 
+
+ pg_dump  -U sf_att --column-inserts -t sync_employee_pmp > e:/sync_employee20150603a.sql attend 
+
+
+18. 查询表大小
+select relname "表名          ",pg_size_pretty(pg_relation_size(text(relname))) "表大小       " from pg_stat_user_tables
+where schemaname = 'sf_att_test' and relname in (
+'iclock','personnel_area','personnel_deptarea','personnel_issuecard','auth_user',
+'auth_user_groups','userinfo','personnel_postions','departments','userinfo_attarea',
+'areaadmin','deptadmin','checkinout','checkinout_bak2')
+order by pg_relation_size(text(relname)) desc;
+
+19.修改字段名称
+alter table personnel_issuecardimport rename import_detail to import_remark
+
+20.修改字段类型
+alter table core_user.basedata_valuelistitem alter column status drop not null
+update status=null where ;
+alter table core_user.basedata_valuelistitem alter column status type boolean  
+using case when status=0 then False else true end;
+
+21 切换到pg控制台
+su postgres
+psql 
+如果psql命令找不到，用绝对路径。 做关联后可以正常执行: ln -s /u01/pg9.1/bin/psql  /usr/sbin/psql
+
+22.启动服务PG服务
+NET STAR postgresql-9.1
+
+
+
+
+
+
+======
+postgreSQL维护命令：
+--1.查看当前数据库下的数据表所占空间大小
+select relname table_name,pg_size_pretty(pg_relation_size(text(relname))) table_size from pg_stat_user_tables 
+where schemaname = 'sf_att' order by table_size desc; 
+
+--2.查看数据库当前活跃进程
+ select datname,procpid,query_start,current_query,waiting,client_addr ,
+ usename from pg_stat_activity  where  current_query like '%WITH EE AS%';
+ 
+--3.取消某进程下的SQL执行: 如下14190对应pg_stat_activity表中procpid
+select pg_cancel_backend(14190);  
+
+--4.终止查询进程: 如下14190对应pg_stat_activity表中procpid
+SELECT pg_terminate_backend(14190) FROM pg_stat_activity WHERE current_query='<IDLE>' 
+
+--5.查询数据库字段值等于2000的数据表与字段详情
+SELECT
+attname as "name", typname as "type", atttypmod - 4 as "size",*
+FROM pg_class AS a
+LEFT OUTER JOIN pg_attribute AS b ON (b.attrelid = a.oid)
+LEFT OUTER JOIN pg_type AS c ON (b.atttypid = c.oid)
+--where a.relname = 'sync_employee' --and attname='emp_name'
+-- and b.attstattarget = -1
+where atttypmod - 4 =2000
+order by size desc,attnum desc;
+
+-----数据库大小
+select pg_database.datname, pg_database_size(pg_database.datname) AS size from pg_database;      
+-----索引大小
+select pg_relation_size('idx_test');
+select pg_size_pretty(pg_relation_size('idx_test'));
+-----指定表总大小
+select pg_size_pretty(pg_total_relation_size('userinfo'));
+-----查看指定schema 里所有的表大小，按从大到小的顺序排列。
+select relname, pg_size_pretty(pg_relation_size(relid)) from pg_stat_user_tables where schemaname='sf_att' 
+order by pg_relation_size(relid) desc;
+
+-----表空间大小
+select pg_size_pretty(pg_tablespace_size('pg_default'));
+
+
+数据库整体迁移到另一台 PG库
+转存储：
+pg_dump dbname | gzip > filename.gz
+
+用下面命令恢复：
+createdb dbname
+gunzip -c filename.gz | psql dbname

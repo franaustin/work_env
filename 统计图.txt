@@ -1,0 +1,39 @@
+web系统可以采用 jquery 组件生成统计图 :
+1. jqPlot 组件 
+    jqPlot官网：http://www.jqplot.com/
+    jqPlot是一个jQuery绘图插件，可以利用它制作漂亮的线状图和柱状图。
+    jqPlot支持为图表设置各种不同的样式。
+    提供Tooltips，数据点高亮显示等功能. 
+
+2.Highcharts 
+    highcharts官网：http://www.highcharts.com/
+    授权协议： 对个人用户完全免费，非开源（商用收费）
+    支持大部分的图表类型：直线图，曲线图、区域图、区域曲线图、柱状图、饼装图、散布图,
+    兼容性：兼容当今所有的浏览器，包括iPhone、IE和火狐等. 
+
+
+
+jqPlot_图表中文API.rar (18.3 KB)
+下载次数: 635
+
+jqPlot-example.rar (83.4 KB)
+下载次数: 500
+
+Highcharts.rar (571.5 KB)
+下载次数: 247
+
+chart103.zip (52.8 KB)
+下载次数: 183
+
+flot-0.7.zip (310.4 KB)
+下载次数: 168
+
+v0.03-beta-1.zip (397.7 KB)
+下载次数: 136
+
+jquery.jqplot.1.0.0b2_r1012.zip (1.5 MB)
+下载次数: 322
+
+参考：
+http://liuzidong.iteye.com/blog/1534360 
+http://www.oschina.net/project/tag/275/jquery-chart

@@ -1,0 +1,40 @@
+数据推送接口:
+1.数据推送接口，分自动、手动两种;
+  自动执行，使用默认参数取接口数据，设定参数去执行；
+  手动执行，使用设定参数取数据，确定后，直接执行；
+2.取数据。根据参数值拼接SQL，采用拼接的SQL或者SQL绑定参数方式执行SQL。
+from django.db import connection
+cur = connection.cursor()
+cur.execute(SQL)
+db_info = cur.fetchall()
+info = list(db_info)
+
+3.将取到的数据写入 xml 文件里面, lxml 库的 etree
+from lxml import etree
+clocksmain = etree.Element('ele_root')
+clocksmain.attrib['size'] = 50000
+clocks = etree.SubElement(clocksmain, 'sub_root') 
+clock = etree.SubElement(clocks, 'item')
+for f in fields :
+    element = etree.SubElement(clock,f)
+    element.text = '002233'
+tree = etree.ElementTree(clocksmain)  
+tree.write(xmlpath, pretty_print=True, xml_declaration=True, encoding='utf-8')  
+
+4.将文件上传到指定服务器:
+用 paramiko 包，先取得文件服务器用户密码，
+然后其连到文件服务器，创建远程连接，并上传。
+
+5.发送报文消息。
+f = urllib2.urlopen(url, soap_message) 
+content = f.read()
+
+
+数据接收接口:
+soaplib 库、 pytz库
+利用soaplib库启一个服务端。
+把接口集成到django中，直接使用django来对外提供服务
+例如: http://localhost:8000/server?WDDL
+
+
+
